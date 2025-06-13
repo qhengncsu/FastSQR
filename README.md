@@ -17,3 +17,16 @@ To install the pacakge in R, use the following R code:
 library(devtools)
 install_github("qhengncsu/FastSQR")
 ```
+
+## Quick Start
+To start using the package, we provide the following numerical example:
+```R
+# generate data
+set.seed(1234)
+# design matrix is 1000*10000
+X = matrix(rnorm(1000*10000),nrow=1000)
+# coefficient is 10 1s followed by 9900 zeros
+beta = c(rep(1,10),rep(0,ncol(X)-10))
+# noise is t distribution with 2 degrees of freedom
+y = X%*%beta+rt(10000, df=2)+5 #intercept is 5
+```
