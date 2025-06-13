@@ -12,7 +12,7 @@ a GCC compiler with OpenMP support available. If that is not the case, you can t
 ```
 sudo apt install build-essential
 ```
-To install the pacakge, try:
+To install the pacakge in R, use the following R code:
 ```R
 library(devtools)
 install_github("qhengncsu/FastSQR")
