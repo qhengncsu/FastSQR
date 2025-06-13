@@ -39,10 +39,24 @@ res1 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.5)
 # of deviance explained, and the sequence of lambda
 res1
 
+#the coefficients are stored in res1$beta (excluding intercept)
+res1$beta
+
+#the intercepts are stored in res1$a0
+#the intercept is not penalized
+res1$a0
+
 # fit a quantile regression model at the 0.75 quantile
 res2 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.75)
 
 # fit a quantile regression model using user specified sequence of lambda
-lambdas = rev(seq(0.02,0.1,length=50))
-res2 = myglmnet(X,y,family="quantile", lambda=lambdas, nlambda=50, h=0.25, tau = 0.5)
+lambdas = rev(seq(0.002,0.1,length=50))
+res3 = myglmnet(X,y,family="quantile", lambda=lambdas, nlambda=50, h=0.25, tau = 0.5)
+
+# using 20% of data as validation set to select the best lambda
+# validation metric is the quantile loss 
+# the model is then refit on the whole data set using the selected lambda
+best_fit1 <- fit_with_tuning_real(X,y, nlambda = 50, val_ratio=0.2, h=0.25, tau=0.5)
+# we may also use a user specified lambda sequence
+best_fit1 <- fit_with_tuning_real(X,y, lambda = lambdas, val_ratio=0.2, h=0.25, tau=0.5)
 ```
