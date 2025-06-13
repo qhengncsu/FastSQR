@@ -1,5 +1,6 @@
 #' @export
-fit_with_tuning_real <- function(x, y, alpha = 1.0, nlambda = 50, lambda.min.ratio = 0.01,
+fit_with_tuning_real <- function(x, y, alpha = 1.0, nlambda = 50,
+                                 lambda.min.ratio = ifelse(nobs <= nvars, 0.01, 1e-04),
                                  lambda = NULL, standardize = TRUE, intercept = TRUE, h=0.25, tau=0.5,
                                  val_ratio=0.2, penalty.factor = rep(1,nvars)){
   np <- dim(x)
@@ -11,19 +12,24 @@ fit_with_tuning_real <- function(x, y, alpha = 1.0, nlambda = 50, lambda.min.rat
   lambda_batch_index <- 1
   beta0 <- double(np[2])
   val_errors = rep(Inf, nlambda)
-  lambda_max = 0.0
-  ju <- rep(1L, nvars)
-  x_list = list("Dense", np[1], np[2], x)
-  vp <- as.double(penalty.factor)
-  .Call("max_lambda",alpha, x_list, y, as.double(rep(1/nobs, nobs)),
-        as.integer(intercept), as.integer(standardize), ju, vp,
-        "quantile", h, tau, NULL, F, lambda_max)
+  if(is.null(lambda)){
+    lambda_max = 0.0
+    ju <- rep(1L, nvars)
+    x_list = list("Dense", np[1], np[2], x)
+    vp <- as.double(penalty.factor)
+    .Call("max_lambda",alpha, x_list, y, as.double(rep(1/nobs, nobs)),
+          as.integer(intercept), as.integer(standardize), ju, vp,
+          "quantile", h, tau, NULL, F, lambda_max)
 
-  ratio <- lambda.min.ratio^(1/(nlambda-1))
-  lambdas = double(nlambda)
-  lambdas[1] = lambda_max
-  for(i in 2:nlambda){
-    lambdas[i] = lambdas[i-1]*ratio
+    ratio <- lambda.min.ratio^(1/(nlambda-1))
+    lambdas = double(nlambda)
+    lambdas[1] = lambda_max
+    for(i in 2:nlambda){
+      lambdas[i] = lambdas[i-1]*ratio
+    }
+  }else{
+    lambdas = lambda
+    nlambda = length(lambda)
   }
   fit <- myglmnet(x[train,], y[train], family="quantile", alpha=alpha, nlambda=nlambda,
                 lambda=lambdas, penalty.factor = penalty.factor,
