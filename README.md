@@ -7,7 +7,11 @@ and type the following commands in a terminal to download and extract an OpenMP 
 curl -O https://mac.r-project.org/openmp/openmp-17.0.6-darwin20-Release.tar.gz
 sudo tar fvxz openmp-17.0.6-darwin20-Release.tar.gz -C /
 ```
-Linux users need a GCC compiler. Most Linux systems already have a GCC compiler available.
+Linux users need a GCC compiler. Most Linux systems in a server environment already have 
+a GCC compiler with OpenMP support available. If that is not the case, you can try
+```
+sudo apt install build-essential
+```
 To install the pacakge, try:
 ```R
 library(devtools)
