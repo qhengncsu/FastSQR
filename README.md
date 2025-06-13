@@ -58,5 +58,5 @@ res3 = myglmnet(X,y,family="quantile", lambda=lambdas, nlambda=50, h=0.25, tau =
 # the model is then refit on the whole data set using the selected lambda
 best_fit1 <- fit_with_tuning_real(X,y, nlambda = 50, val_ratio=0.2, h=0.25, tau=0.5)
 # we may also use a user specified lambda sequence
-best_fit1 <- fit_with_tuning_real(X,y, lambda = lambdas, val_ratio=0.2, h=0.25, tau=0.5)
+best_fit2 <- fit_with_tuning_real(X,y, lambda = lambdas, val_ratio=0.2, h=0.25, tau=0.5)
 ```
