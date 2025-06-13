@@ -37,9 +37,10 @@ y = X%*%beta+rt(1000, df=2)+5 #intercept is 5
 res1 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.5)
 # type res1 to view the degree of freedoms, the proportion
 # of deviance explained, and the sequence of lambda
+res1
 
 # fit a quantile regression model at the 0.75 quantile
-res2 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.5)
+res2 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.75)
 
 # fit a quantile regression model using user specified sequence of lambda
 lambdas = rev(seq(0.02,0.1,length=50))
