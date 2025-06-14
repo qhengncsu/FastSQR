@@ -1,0 +1,89 @@
+---
+title: "SNP Data Tutorial"
+output: html_document
+date: "2025-06-13"
+---
+
+## Installation
+
+Using FastSQR with SNP data requires an additional package pgenlibr, which can 
+be installed with the following R code:
+```{r}
+library(devtools)
+install_github("qhengncsu/plink-ng", subdir="/2.0/pgenlibr")
+```
+
+## Data Import
+Now let's try loading some SNP data. We assume the data is stored in the pgen format, 
+which typically comes as a tupe (*.pgen, *.pvar.zst, *.psam).
+```{r}
+library(pgenlibr)
+# we are trying to import the pgen tupe (sample.pgen, sample.pvar.zst, sample.psam) 
+pvar <- NewPvar(paste0('sample.pvar.zst'))
+pgen <- NewPgen(paste0('sample.pgen'),pvar=pvar)
+
+# now let's load all the variant names
+# get variant count
+var_count <- GetVariantCt(pvar)
+# load variant names one by one
+var_names = rep(NA,var_count)
+for(i in 1:var_count){
+  var_names[i] = GetVariantId(pvar,i)
+}
+
+# read in SNP data
+snp_matrix <- ReadList(pgen, 1:var_count, meanimpute =TRUE)
+```
+
+## Fit a quantile regression model using SNP matrix
+
+The SNP matrix stores the genotype data, we may also attach covariates such as 
+age, sex, principal components to the snp_matrix. For sample.pgen, these 
+information are stored in sample.phe.
+
+```{r}
+library(myglmnet)
+# read in phenotype data
+phenotype_data <- data.table::fread("sample.phe")
+# this is the list of covariates that we consider
+covariates <- c("age","sex",paste0("PC",1:10))
+
+
+# get covariates
+covs <- as.matrix(phenotype_data[,..covariates])
+
+n <- dim(snp_matrix)[1]
+p <- dim(snp_matrix)[2]
+# now let's generate a response
+beta <- c(rep(1, 10),rep(0,p-10))
+# for SNP data, the first two coefficients are 1, the rest are 0
+# for covariates, all coefficients are 0.1
+# the noise is t distribution with 2 degrees of freedom
+# the intercept is 5
+y <- snp_matrix %*% beta + covs%*%rep(0.1,12) + rt(n,df=2)+5
+
+# fit a quantile regression model, the first 12 variables are covariates
+# and they are not penalized
+penalty.factor <- c(rep(0,12),rep(1,p))
+res = myglmnet(cbind(covs,snp_matrix), y, family='quantile', standardize=T, intercept=T,
+               nlambda=30, h=0.25, tau=0.5, penalty.factor=penalty.factor)
+
+# at the 10-th lambda, the coefficients of the covariates are close to real 
+# value 0.1, and the coefficients of first 10 SNPs are close to 1
+res$beta[1:22,10]
+```
+
+## Parameter Tuning
+
+For SNP data, the train/validation split is a bit more involved. We must use the
+plink software to separate sample.pgen into a training file and a validation file
+first. See also https://www.cog-genomics.org/plink/2.0/filter. We recommend 
+download the plink excutable https://www.cog-genomics.org/plink/2.0/ for your 
+operating system and store it in the same directory as this R Markdown file, 
+
+
+```{r}
+best_fit = fit_with_tuning_real(cbind(covs,snp_matrix), y, standardize=T, intercept=T,
+                          nlambda=30, h=0.25, tau=0.5, penalty.factor=penalty.factor,val_ratio=0.2)
+best_fit
+```
