@@ -1,5 +1,5 @@
 #' @export
-fit_with_tuning_real <- function(x, y, alpha = 1.0, nlambda = 50,
+fit_with_tuning <- function(x, y, alpha = 1.0, nlambda = 50,
                                  lambda.min.ratio = ifelse(nobs <= nvars, 0.01, 1e-04),
                                  lambda = NULL, standardize = TRUE, intercept = TRUE, h=0.25, tau=0.5,
                                  val_ratio=0.2, penalty.factor = rep(1,nvars)){

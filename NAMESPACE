@@ -2,8 +2,7 @@
 
 S3method(print,glmnet)
 export(PlinkPredict)
-export(fit_with_tuning_real)
-export(fit_with_tuning_snp)
+export(fit_with_tuning)
 export(glmnet.control)
 export(myglmnet)
 importFrom(Matrix,drop0)

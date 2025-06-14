@@ -1,68 +1,38 @@
+# generate data
 set.seed(1234)
-X = matrix(rnorm(10000*10000),nrow=10000)
+# design matrix is 1000*10000
+X = matrix(rnorm(1000*10000),nrow=1000)
+# coefficient is 10 1s followed by 9900 zeros
 beta = c(rep(1,10),rep(0,ncol(X)-10))
-y = X%*%beta+rt(10000, df=2)+5
-#y = as.double(rbinom(1000,size=1,prob=0.5))
-library(myglmnet)
-library(conquer)
-start.time <- Sys.time()
-res1 = myglmnet(X,y,family="quantile",nlambda=50, h = 0.25, tau=0.9)
-end.time <- Sys.time()
-print(end.time-start.time)
-lambdas = res1$lambda
-start.time <- Sys.time()
-res2 = conquer.reg(X,y,lambda=lambdas,h=0.25,para.elastic=1,epsilon=1e-4,tau=0.9)
-end.time <- Sys.time()
-print(end.time-start.time)
-tau = 0.5
-quantile_loss1 <- double(50)
-quantile_loss2 <- double(50)
-for(j in 1:50){
-  pred1 <-  X%*%res1$beta[,j] + res1$a0[j]
-  quantile_loss1[j] <- mean(0.5*abs(y-pred1)+(tau-0.5)*(y-pred1))
-  pred2 <-  X%*%res2$coeff[2:50001,j] + res2$coeff[1,j]
-  quantile_loss2[j] <- mean(0.5*abs(y-pred2)+(tau-0.5)*(y-pred2))
-}
-quantile_loss1
-rev(quantile_loss2)
+# noise is t distribution with 2 degrees of freedom
+y = X%*%beta+rt(1000, df=2)+5 #intercept is 5
 
-best_fit <- fit_with_tuning_real(X,y)
+# fit a quantile regression model at the 0.5 quantile,
+# using smoothing parameter h=0.25, and along 50 values
+# of penalty parameters lambda, the algorithm chooses
+# its own sequence of lambda
+res1 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.5)
+# type res1 to view the degree of freedoms, the proportion
+# of deviance explained, and the sequence of lambda
+res1
 
+#the coefficients are stored in res1$beta (excluding intercept)
+res1$beta
 
-genotype.pfile = "sample"
-n <- 2000
-p = 8000
-vars <- dplyr::mutate(dplyr::rename(data.table::fread(cmd=paste0('zstdcat', ' ', paste0(genotype.pfile, '.pvar.zst'))), 'CHROM'='#CHROM'), VAR_ID=paste(ID, ALT, sep='_'))$VAR_ID
-pvar <- pgenlibr::NewPvar(paste0(genotype.pfile, '.pvar.zst'))
-pgen <- pgenlibr::NewPgen(paste0(genotype.pfile, '.pgen'))
-snp_matrix <- prepareFeatures(pgen, vars, vars)
-float_matrix = ReadList(pgen, 1:p, meanimpute =TRUE)
-psam.ids <- readIDsFromPsam(paste0(genotype.pfile, '.psam'))
+#the intercepts are stored in res1$a0
+#the intercept is not penalized
+res1$a0
 
-matmul_result <- double(n*2)
-intercepts = c(1.0,3.0)
-x = snp_matrix
-dense_beta = matrix(rnorm(2*p),nrow=p,ncol=2)
-.Call("PlinkMultvC", x@ptr, x@xim, x@covs, n, p , x@ncov, dense_beta, intercepts, matmul_result)
-matmul_result = matrix(matmul_result, nrow=n)
+# fit a quantile regression model at the 0.75 quantile
+res2 = myglmnet(X,y,family="quantile", nlambda=50, h=0.25, tau = 0.75)
 
-matmul_result2 = float_matrix %*% dense_beta
-for(i in 1:(n*(1-val_ratio))){
-  matmul_result2[i, ] <- matmul_result2[i, ] + intercepts
-}
+# fit a quantile regression model using user specified sequence of lambda
+lambdas = rev(seq(0.002,0.1,length=50))
+res3 = myglmnet(X,y,family="quantile", lambda=lambdas, nlambda=50, h=0.25, tau = 0.5)
 
-matmul_result - matmul_result2
-
-beta = c(rep(1,10), rep(0, p-10))
-y = 5+ float_matrix %*% beta + rnorm(n)#as.matrix(phe.master[,..covariates])%*% beta_c
-start.time <- Sys.time()
-res1 = myglmnet(float_matrix, y, family='quantile', standardize=F, intercept=T,nlambda=30, tau=0.5)
-end.time <- Sys.time()
-print(end.time-start.time)
-
-start.time <- Sys.time()
-res2 = myglmnet(snp_matrix, y, family='quantile', lambda = res1$lambda, standardize=F, intercept=T,nlambda=30, tau=0.5)
-end.time <- Sys.time()
-print(end.time-start.time)
-
-best_fit <- fit_with_tuning_real(float_matrix,y)
+# using 20% of data as validation set to select the best lambda
+# validation metric is the quantile loss
+# the model is then refit on the whole data set using the selected lambda
+best_fit1 <- fit_with_tuning(X,y, nlambda = 50, val_ratio=0.2, h=0.25, tau=0.5)
+# we may also use a user specified lambda sequence
+best_fit2 <- fit_with_tuning(X,y, lambda = lambdas, val_ratio=0.2, h=0.25, tau=0.5)

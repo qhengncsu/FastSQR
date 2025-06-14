@@ -16,7 +16,7 @@ glmnet.control(
   mxit = 100,
   itrace = 0,
   epsnr = 1e-08,
-  mxitnr = 100,
+  mxitnr = 200,
   factory = FALSE
 )
 }
