@@ -21,6 +21,7 @@ install_github("qhengncsu/FastSQR")
 ## Quick Start
 To start using the package, we provide the following simulated example:
 ```R
+library(myglmnet)
 # generate data
 set.seed(1234)
 # design matrix is 1000*10000
