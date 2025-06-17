@@ -15,7 +15,7 @@ install_github("qhengncsu/plink-ng", subdir="/2.0/pgenlibr")
 
 ## Data Import
 Now let's try loading some SNP data. We assume the data is stored in the pgen format, 
-which typically comes as a tupe (*.pgen, *.pvar.zst, *.psam).
+which typically comes as a tuple (*.pgen, *.pvar.zst, *.psam).
 ```{r}
 library(pgenlibr)
 # we are trying to import the pgen tupe (sample.pgen, sample.pvar.zst, sample.psam) 
@@ -56,15 +56,19 @@ n <- dim(snp_matrix)[1]
 p <- dim(snp_matrix)[2]
 # now let's generate a response
 beta <- c(rep(1, 10),rep(0,p-10))
-# for SNP data, the first two coefficients are 1, the rest are 0
+# for SNP data, the first 10 coefficients are 1, the rest are 0
 # for covariates, all coefficients are 0.1
 # the noise is t distribution with 2 degrees of freedom
 # the intercept is 5
 y <- snp_matrix %*% beta + covs%*%rep(0.1,12) + rt(n,df=2)+5
 
 # fit a quantile regression model, the first 12 variables are covariates
-# and they are not penalized
+# and they are not penalized, so that penalty.factor starts with 12 zeros
 penalty.factor <- c(rep(0,12),rep(1,p))
+# standardize means we standardize X before computing the solution path
+# the coefficients are reverted to original scale at the end
+# intercept is whether we incldue an intercept in the model
+# we typically recommend setting both standardize and intercept to T
 res = myglmnet(cbind(covs,snp_matrix), y, family='quantile', standardize=T, intercept=T,
                nlambda=30, h=0.25, tau=0.5, penalty.factor=penalty.factor)
 
@@ -74,9 +78,11 @@ res$beta[1:22,10]
 ```
 
 ## Parameter Tuning
-
+Similarly, we may use 20% of data as validation set and select the optimal 
+$\lambda$ based on validation loss.
 ```{r}
 best_fit = fit_with_tuning(cbind(covs,snp_matrix), y, standardize=T, intercept=T,
-                          nlambda=30, h=0.25, tau=0.5, penalty.factor=penalty.factor,val_ratio=0.2)
-best_fit
+                          nlambda=30, h=0.25, tau=0.5, 
+                          penalty.factor=penalty.factor,val_ratio=0.2)
+best_fit$beta[1:22,1]
 ```

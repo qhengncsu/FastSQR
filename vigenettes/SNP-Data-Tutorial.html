@@ -368,7 +368,7 @@ which can be installed with the following R code:</p>
 <div id="data-import" class="section level2">
 <h2>Data Import</h2>
 <p>Now let’s try loading some SNP data. We assume the data is stored in
-the pgen format, which typically comes as a tupe (<em>.pgen,
+the pgen format, which typically comes as a tuple (<em>.pgen,
 </em>.pvar.zst, *.psam).</p>
 <pre class="r"><code>library(pgenlibr)
 # we are trying to import the pgen tupe (sample.pgen, sample.pvar.zst, sample.psam) 
@@ -407,136 +407,144 @@ n &lt;- dim(snp_matrix)[1]
 p &lt;- dim(snp_matrix)[2]
 # now let&#39;s generate a response
 beta &lt;- c(rep(1, 10),rep(0,p-10))
-# for SNP data, the first two coefficients are 1, the rest are 0
+# for SNP data, the first 10 coefficients are 1, the rest are 0
 # for covariates, all coefficients are 0.1
 # the noise is t distribution with 2 degrees of freedom
 # the intercept is 5
 y &lt;- snp_matrix %*% beta + covs%*%rep(0.1,12) + rt(n,df=2)+5
 
 # fit a quantile regression model, the first 12 variables are covariates
-# and they are not penalized
+# and they are not penalized, so that penalty.factor starts with 12 zeros
 penalty.factor &lt;- c(rep(0,12),rep(1,p))
+# standardize means we standardize X before computing the solution path
+# the coefficients are reverted to original scale at the end
+# intercept is whether we incldue an intercept in the model
+# we typically recommend setting both standardize and intercept to T
 res = myglmnet(cbind(covs,snp_matrix), y, family=&#39;quantile&#39;, standardize=T, intercept=T,
                nlambda=30, h=0.25, tau=0.5, penalty.factor=penalty.factor)</code></pre>
-<pre><code>## momentum is 0.800000. 
-## lambda = 0.100172 solved in 24 IRLS iterations. 
-## lambda = 0.085463 solved in 30 IRLS iterations. 
-## lambda = 0.072914 solved in 23 IRLS iterations. 
-## lambda = 0.062208 solved in 20 IRLS iterations. 
-## lambda = 0.053074 solved in 17 IRLS iterations. 
-## lambda = 0.045281 solved in 8 IRLS iterations. 
-## lambda = 0.038632 solved in 8 IRLS iterations. 
-## lambda = 0.032960 solved in 14 IRLS iterations. 
-## lambda = 0.028120 solved in 15 IRLS iterations. 
-## lambda = 0.023991 solved in 18 IRLS iterations. 
-## lambda = 0.020469 solved in 18 IRLS iterations. 
-## lambda = 0.017463 solved in 19 IRLS iterations. 
-## lambda = 0.014899 solved in 22 IRLS iterations. 
-## lambda = 0.012711 solved in 11 IRLS iterations. 
-## lambda = 0.010845 solved in 14 IRLS iterations. 
-## lambda = 0.009253 solved in 16 IRLS iterations. 
-## lambda = 0.007894 solved in 19 IRLS iterations. 
-## lambda = 0.006735 solved in 22 IRLS iterations. 
-## lambda = 0.005746 solved in 23 IRLS iterations. 
-## lambda = 0.004902 solved in 27 IRLS iterations. 
-## lambda = 0.004182 solved in 30 IRLS iterations. 
-## lambda = 0.003568 solved in 31 IRLS iterations. 
-## lambda = 0.003044 solved in 33 IRLS iterations. 
-## lambda = 0.002597 solved in 41 IRLS iterations. 
-## lambda = 0.002216 solved in 40 IRLS iterations. 
-## lambda = 0.001891 solved in 36 IRLS iterations. 
-## lambda = 0.001613 solved in 41 IRLS iterations. 
-## lambda = 0.001376 solved in 39 IRLS iterations. 
-## lambda = 0.001174 solved in 39 IRLS iterations. 
-## lambda = 0.001002 solved in 4 IRLS iterations.</code></pre>
+<pre><code>## lambda = 0.112591 solved in 12 IRLS iterations. 
+## lambda = 0.096059 solved in 12 IRLS iterations. 
+## lambda = 0.081954 solved in 12 IRLS iterations. 
+## lambda = 0.069921 solved in 9 IRLS iterations. 
+## lambda = 0.059654 solved in 8 IRLS iterations. 
+## lambda = 0.050895 solved in 6 IRLS iterations. 
+## lambda = 0.043422 solved in 5 IRLS iterations. 
+## lambda = 0.037046 solved in 5 IRLS iterations. 
+## lambda = 0.031607 solved in 5 IRLS iterations. 
+## lambda = 0.026966 solved in 5 IRLS iterations. 
+## lambda = 0.023006 solved in 6 IRLS iterations. 
+## lambda = 0.019628 solved in 6 IRLS iterations. 
+## lambda = 0.016746 solved in 8 IRLS iterations. 
+## lambda = 0.014287 solved in 11 IRLS iterations. 
+## lambda = 0.012189 solved in 11 IRLS iterations. 
+## lambda = 0.010400 solved in 16 IRLS iterations. 
+## lambda = 0.008873 solved in 22 IRLS iterations. 
+## lambda = 0.007570 solved in 19 IRLS iterations. 
+## lambda = 0.006458 solved in 25 IRLS iterations. 
+## lambda = 0.005510 solved in 18 IRLS iterations. 
+## lambda = 0.004701 solved in 17 IRLS iterations. 
+## lambda = 0.004011 solved in 12 IRLS iterations. 
+## lambda = 0.003422 solved in 14 IRLS iterations. 
+## lambda = 0.002919 solved in 15 IRLS iterations. 
+## lambda = 0.002491 solved in 15 IRLS iterations. 
+## lambda = 0.002125 solved in 14 IRLS iterations. 
+## lambda = 0.001813 solved in 13 IRLS iterations. 
+## lambda = 0.001547 solved in 8 IRLS iterations. 
+## lambda = 0.001320 solved in 7 IRLS iterations. 
+## lambda = 0.001126 solved in 7 IRLS iterations.</code></pre>
 <pre class="r"><code># at the 10-th lambda, the coefficients of the covariates are close to real 
 # value 0.1, and the coefficients of first 10 SNPs are close to 1
 res$beta[1:22,10]</code></pre>
 <pre><code>##        age        sex        PC1        PC2        PC3        PC4        PC5 
-## 0.09764997 0.10203401 0.04799364 0.08404556 0.11834618 0.10068400 0.10518333 
+## 0.09725013 0.17163378 0.06008971 0.10298556 0.09300193 0.07048802 0.10319477 
 ##        PC6        PC7        PC8        PC9       PC10                       
-## 0.11498790 0.07894918 0.09724769 0.08999235 0.09101683 0.89311428 0.82753843 
+## 0.11291642 0.07475724 0.09542294 0.10675368 0.08318824 0.89203018 0.80356894 
 ##                                                                              
-## 0.84071689 0.79159149 0.91149713 0.79209516 0.94290018 0.90225867 0.80786235 
+## 0.79722511 0.82816832 0.92419156 0.69595821 0.83165053 0.89924825 0.86244392 
 ##            
-## 0.92782387</code></pre>
+## 0.86994305</code></pre>
 </div>
 <div id="parameter-tuning" class="section level2">
 <h2>Parameter Tuning</h2>
+<p>Similarly, we may use 20% of data as validation set and select the
+optimal <span class="math inline">\(\lambda\)</span> based on validation
+loss.</p>
 <pre class="r"><code>best_fit = fit_with_tuning(cbind(covs,snp_matrix), y, standardize=T, intercept=T,
-                          nlambda=30, h=0.25, tau=0.5, penalty.factor=penalty.factor,val_ratio=0.2)</code></pre>
-<pre><code>## Maximum lambda = 0.100172. 
+                          nlambda=30, h=0.25, tau=0.5, 
+                          penalty.factor=penalty.factor,val_ratio=0.2)</code></pre>
+<pre><code>## Maximum lambda = 0.112591. 
 ## standardizing variables here!
-## momentum is 0.800000. 
-## lambda = 0.100172 solved in 22 IRLS iterations. 
-## lambda = 0.085463 solved in 30 IRLS iterations. 
-## lambda = 0.072914 solved in 22 IRLS iterations. 
-## lambda = 0.062208 solved in 19 IRLS iterations. 
-## lambda = 0.053074 solved in 17 IRLS iterations. 
-## lambda = 0.045281 solved in 16 IRLS iterations. 
-## lambda = 0.038632 solved in 15 IRLS iterations. 
-## lambda = 0.032960 solved in 8 IRLS iterations. 
-## lambda = 0.028120 solved in 17 IRLS iterations. 
-## lambda = 0.023991 solved in 19 IRLS iterations. 
-## lambda = 0.020469 solved in 19 IRLS iterations. 
-## lambda = 0.017463 solved in 22 IRLS iterations. 
-## lambda = 0.014899 solved in 12 IRLS iterations. 
-## lambda = 0.012711 solved in 13 IRLS iterations. 
-## lambda = 0.010845 solved in 16 IRLS iterations. 
-## lambda = 0.009253 solved in 17 IRLS iterations. 
-## lambda = 0.007894 solved in 16 IRLS iterations. 
-## lambda = 0.006735 solved in 25 IRLS iterations. 
-## lambda = 0.005746 solved in 27 IRLS iterations. 
-## lambda = 0.004902 solved in 30 IRLS iterations. 
-## lambda = 0.004182 solved in 27 IRLS iterations. 
-## lambda = 0.003568 solved in 37 IRLS iterations. 
-## lambda = 0.003044 solved in 42 IRLS iterations. 
-## lambda = 0.002597 solved in 42 IRLS iterations. 
-## lambda = 0.002216 solved in 13 IRLS iterations. 
-## lambda = 0.001891 solved in 4 IRLS iterations. 
-## lambda = 0.001613 solved in 36 IRLS iterations. 
-## lambda = 0.001376 solved in 5 IRLS iterations. 
-## lambda = 0.001174 solved in 12 IRLS iterations. 
-## lambda = 0.001002 solved in 4 IRLS iterations. 
-## [1] &quot;Validation error at lambda = 0.100172 is 1.154673&quot;
-## [1] &quot;Validation error at lambda = 0.085463 is 1.021540&quot;
-## [1] &quot;Validation error at lambda = 0.072914 is 0.949984&quot;
-## [1] &quot;Validation error at lambda = 0.062208 is 0.907118&quot;
-## [1] &quot;Validation error at lambda = 0.053074 is 0.879604&quot;
-## [1] &quot;Validation error at lambda = 0.045281 is 0.863153&quot;
-## [1] &quot;Validation error at lambda = 0.038632 is 0.853092&quot;
-## [1] &quot;Validation error at lambda = 0.032960 is 0.846651&quot;
-## [1] &quot;Validation error at lambda = 0.028120 is 0.843589&quot;
-## [1] &quot;Validation error at lambda = 0.023991 is 0.842147&quot;
-## [1] &quot;Validation error at lambda = 0.020469 is 0.844258&quot;
-## [1] &quot;Validation error at lambda = 0.017463 is 0.852067&quot;
-## [1] &quot;Validation error at lambda = 0.014899 is 0.877631&quot;
-## [1] &quot;Validation error at lambda = 0.012711 is 0.914699&quot;
-## [1] &quot;Validation error at lambda = 0.010845 is 0.954072&quot;
-## [1] &quot;Validation error at lambda = 0.009253 is 1.000638&quot;
-## [1] &quot;Validation error at lambda = 0.007894 is 1.036901&quot;
-## [1] &quot;Validation error at lambda = 0.006735 is 1.070261&quot;
-## [1] &quot;Validation error at lambda = 0.005746 is 1.105597&quot;
-## [1] &quot;Validation error at lambda = 0.004902 is 1.133546&quot;
-## [1] &quot;Validation error at lambda = 0.004182 is 1.149214&quot;
-## [1] &quot;Validation error at lambda = 0.003568 is 1.186789&quot;
-## [1] &quot;Validation error at lambda = 0.003044 is 1.211396&quot;
-## [1] &quot;Validation error at lambda = 0.002597 is 1.230712&quot;
-## [1] &quot;Validation error at lambda = 0.002216 is 1.237414&quot;
-## [1] &quot;Validation error at lambda = 0.001891 is 1.238841&quot;
-## [1] &quot;Validation error at lambda = 0.001613 is 1.246846&quot;
-## [1] &quot;Validation error at lambda = 0.001376 is 1.249131&quot;
-## [1] &quot;Validation error at lambda = 0.001174 is 1.255429&quot;
-## [1] &quot;Validation error at lambda = 0.001002 is 1.256259&quot;
+## lambda = 0.112591 solved in 11 IRLS iterations. 
+## lambda = 0.096059 solved in 12 IRLS iterations. 
+## lambda = 0.081954 solved in 13 IRLS iterations. 
+## lambda = 0.069921 solved in 9 IRLS iterations. 
+## lambda = 0.059654 solved in 8 IRLS iterations. 
+## lambda = 0.050895 solved in 6 IRLS iterations. 
+## lambda = 0.043422 solved in 5 IRLS iterations. 
+## lambda = 0.037046 solved in 5 IRLS iterations. 
+## lambda = 0.031607 solved in 6 IRLS iterations. 
+## lambda = 0.026966 solved in 6 IRLS iterations. 
+## lambda = 0.023006 solved in 7 IRLS iterations. 
+## lambda = 0.019628 solved in 9 IRLS iterations. 
+## lambda = 0.016746 solved in 11 IRLS iterations. 
+## lambda = 0.014287 solved in 14 IRLS iterations. 
+## lambda = 0.012189 solved in 21 IRLS iterations. 
+## lambda = 0.010400 solved in 18 IRLS iterations. 
+## lambda = 0.008873 solved in 18 IRLS iterations. 
+## lambda = 0.007570 solved in 21 IRLS iterations. 
+## lambda = 0.006458 solved in 16 IRLS iterations. 
+## lambda = 0.005510 solved in 12 IRLS iterations. 
+## lambda = 0.004701 solved in 19 IRLS iterations. 
+## lambda = 0.004011 solved in 11 IRLS iterations. 
+## lambda = 0.003422 solved in 10 IRLS iterations. 
+## lambda = 0.002919 solved in 10 IRLS iterations. 
+## lambda = 0.002491 solved in 14 IRLS iterations. 
+## lambda = 0.002125 solved in 12 IRLS iterations. 
+## lambda = 0.001813 solved in 11 IRLS iterations. 
+## lambda = 0.001547 solved in 10 IRLS iterations. 
+## lambda = 0.001320 solved in 16 IRLS iterations. 
+## lambda = 0.001126 solved in 2 IRLS iterations. 
+## [1] &quot;Validation error at lambda = 0.112591 is 1.021594&quot;
+## [1] &quot;Validation error at lambda = 0.096059 is 0.936275&quot;
+## [1] &quot;Validation error at lambda = 0.081954 is 0.811684&quot;
+## [1] &quot;Validation error at lambda = 0.069921 is 0.739074&quot;
+## [1] &quot;Validation error at lambda = 0.059654 is 0.699135&quot;
+## [1] &quot;Validation error at lambda = 0.050895 is 0.674766&quot;
+## [1] &quot;Validation error at lambda = 0.043422 is 0.659111&quot;
+## [1] &quot;Validation error at lambda = 0.037046 is 0.648655&quot;
+## [1] &quot;Validation error at lambda = 0.031607 is 0.643158&quot;
+## [1] &quot;Validation error at lambda = 0.026966 is 0.644417&quot;
+## [1] &quot;Validation error at lambda = 0.023006 is 0.645330&quot;
+## [1] &quot;Validation error at lambda = 0.019628 is 0.657627&quot;
+## [1] &quot;Validation error at lambda = 0.016746 is 0.673716&quot;
+## [1] &quot;Validation error at lambda = 0.014287 is 0.696496&quot;
+## [1] &quot;Validation error at lambda = 0.012189 is 0.735462&quot;
+## [1] &quot;Validation error at lambda = 0.010400 is 0.767642&quot;
+## [1] &quot;Validation error at lambda = 0.008873 is 0.800114&quot;
+## [1] &quot;Validation error at lambda = 0.007570 is 0.844402&quot;
+## [1] &quot;Validation error at lambda = 0.006458 is 0.875648&quot;
+## [1] &quot;Validation error at lambda = 0.005510 is 0.899911&quot;
+## [1] &quot;Validation error at lambda = 0.004701 is 0.915573&quot;
+## [1] &quot;Validation error at lambda = 0.004011 is 0.944815&quot;
+## [1] &quot;Validation error at lambda = 0.003422 is 0.962920&quot;
+## [1] &quot;Validation error at lambda = 0.002919 is 0.970426&quot;
+## [1] &quot;Validation error at lambda = 0.002491 is 0.974387&quot;
+## [1] &quot;Validation error at lambda = 0.002125 is 0.987892&quot;
+## [1] &quot;Validation error at lambda = 0.001813 is 0.999905&quot;
+## [1] &quot;Validation error at lambda = 0.001547 is 1.012835&quot;
+## [1] &quot;Validation error at lambda = 0.001320 is 1.038130&quot;
+## [1] &quot;Validation error at lambda = 0.001126 is 1.039740&quot;
 ## standardizing variables here!
-## momentum is 0.800000. 
-## lambda = 0.023991 solved in 8 IRLS iterations.</code></pre>
-<pre class="r"><code>best_fit</code></pre>
-<pre><code>## 
-## Call:  myglmnet(x = x, y = y, family = &quot;quantile&quot;, alpha = alpha, nlambda = 1,      lambda = lambdas[best_lambda_index], standardize = standardize,      intercept = intercept, penalty.factor = penalty.factor, beta0 = fit$beta[,          best_lambda_index], h = h, tau = tau) 
-## 
-##    Df  %Dev  Lambda
-## 1 149 44.82 0.02399</code></pre>
+## lambda = 0.031607 solved in 4 IRLS iterations.</code></pre>
+<pre class="r"><code>best_fit$beta[1:22,1]</code></pre>
+<pre><code>##        age        sex        PC1        PC2        PC3        PC4        PC5 
+## 0.09743067 0.18222500 0.04012512 0.10168757 0.09554018 0.07127032 0.10313385 
+##        PC6        PC7        PC8        PC9       PC10                       
+## 0.11121271 0.07299032 0.09468572 0.10637251 0.08613961 0.86668614 0.78759739 
+##                                                                              
+## 0.76988405 0.80937061 0.90329822 0.66634860 0.82334767 0.87081870 0.83582842 
+##            
+## 0.85297835</code></pre>
 </div>
 
 

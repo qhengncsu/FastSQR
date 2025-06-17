@@ -1,11 +1,12 @@
+library(myglmnet)
 # generate data
 set.seed(1234)
-# design matrix is 1000*10000
-X = matrix(rnorm(1000*10000),nrow=1000)
+# design matrix is 10000*10000
+X = matrix(rnorm(10000*10000),nrow=10000)
 # coefficient is 10 1s followed by 9900 zeros
 beta = c(rep(1,10),rep(0,ncol(X)-10))
 # noise is t distribution with 2 degrees of freedom
-y = X%*%beta+rt(1000, df=2)+5 #intercept is 5
+y = X%*%beta+rt(10000, df=2)+5 #intercept is 5
 
 # fit a quantile regression model at the 0.5 quantile,
 # using smoothing parameter h=0.25, and along 50 values

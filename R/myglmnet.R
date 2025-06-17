@@ -5,7 +5,7 @@ myglmnet <- function(x, y, family = c("gaussian", "logistic", "binomial", "cox",
                      alpha = 1, nlambda = 100, lambda.min.ratio = ifelse(nobs <= nvars, 0.01, 1e-04),
                      lambda = NULL, standardize = TRUE, intercept = TRUE, thresh = 1e-07, dfmax = nvars +
                      1, pmax = min(dfmax * 2 + 20, nvars), exclude = NULL, penalty.factor = rep(1,
-                     nvars), lower.limits = -Inf, upper.limits = Inf, maxit = 1e+05, beta0=NULL, h=0.25, tau=0.5) {
+                     nvars), lower.limits = -Inf, upper.limits = Inf, maxit = 1e+04, beta0=NULL, h=0.25, tau=0.5) {
 
     this.call <- match.call()
     ### Need to do this first so defaults in call can be satisfied

@@ -97,9 +97,9 @@ void glmnetPath(double alpha, MatrixGlmnet *X, const double *y, const double *v,
     double current_dev;
     double momentum = 0;
     if(fam->is_quantile()){
-      momentum = 0.8;
+      momentum = 0.0;
     }
-    Rprintf("momentum is %f. \n", momentum);
+    //Rprintf("momentum is %f. \n", momentum);
     for (int m = 0; m < nlambda; ++m) {
         double almc = lambdas[m];
         for (int i = 0; i < ni; ++i) {

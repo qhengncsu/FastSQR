@@ -47,7 +47,7 @@
 glmnet.control <-
   function (fdev = 1e-05, devmax = 0.999, eps = 1e-06, big = 9.9e+35,
             mnlam = 5, pmin = 1e-09, exmx = 250, prec = 1e-10, mxit = 100,
-            itrace = 0, epsnr = 1e-08, mxitnr = 200, factory = FALSE)
+            itrace = 0, epsnr = 1e-08, mxitnr = 100, factory = FALSE)
 {
   list(fdev = fdev, devmax = devmax,
                              eps = eps, big = big, mnlam = mnlam, pmin = pmin,

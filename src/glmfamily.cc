@@ -186,7 +186,11 @@ void Quantile::get_workingset(const double *eta, const double *y,
   double ch = 1 / (std::sqrt(2 * M_PI) * this->h);
   for (int i = 0; i < len; ++i) {
     double res = y[i] - eta[i];
-    w[i] = ch * v[i];
+    double weight = std::exp(-res*res/(2*this->h*this->h));
+    if(weight < 0.1){
+      weight = 0.1;
+    }
+    w[i] = ch * v[i]*weight;
     z[i] = (this->tau - normal_cdf(-res, h))  * v[i];
     sumbuf[0] += z[i];
     sumbuf[1] += w[i];
